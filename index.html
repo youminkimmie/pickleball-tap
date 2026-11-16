@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pickleball Tab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow phone-first column — week bar, money summary, tabs, then the working list. */
+:root{
+  --bg:#f3f6f7; --surface:#ffffff; --sunk:#e9eef1; --ink:#14232e; --muted:#5a6b77; --line:#d9e1e6;
+  --accent:#1f5f86; --accent-ink:#ffffff; --ball:#d4de2f; --ball-ink:#1d2405;
+  --ok:#1d7546; --ok-bg:#e2f2e8; --warn:#8f5b00; --warn-bg:#f9eed6; --bad:#b0302a; --bad-bg:#fae5e3;
+  --display:"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  --body:"Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e161b; --surface:#16212a; --sunk:#1c2932; --ink:#e5edf1; --muted:#93a4af; --line:#27363f;
+  --accent:#72b6de; --accent-ink:#0a1822; --ball:#c8d22f; --ball-ink:#1a2004;
+  --ok:#5fca8e; --ok-bg:#132e1f; --warn:#e4b250; --warn-bg:#32260e; --bad:#f2827a; --bad-bg:#3a1916;
+  color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0e161b; --surface:#16212a; --sunk:#1c2932; --ink:#e5edf1; --muted:#93a4af; --line:#27363f;
+  --accent:#72b6de; --accent-ink:#0a1822; --ball:#c8d22f; --ball-ink:#1a2004;
+  --ok:#5fca8e; --ok-bg:#132e1f; --warn:#e4b250; --warn-bg:#32260e; --bad:#f2827a; --bad-bg:#3a1916;
+  color-scheme:dark;}
+*{box-sizing:border-box}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}
+[hidden]{display:none!important}
+img{max-width:100%}
+.foot{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;align-items:center;padding-top:8px}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45;}
+.wrap{max-width:640px;margin:0 auto;padding-block:18px 64px;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:26px} h2{font-size:18px} h3{font-size:15px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)} .small{font-size:13px}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.ballmark{width:26px;height:26px;border-radius:50%;background:var(--ball);position:relative;flex:none}
+.ballmark::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 30% 35%,var(--ball-ink) 0 1.6px,transparent 2px),radial-gradient(circle at 65% 30%,var(--ball-ink) 0 1.6px,transparent 2px),radial-gradient(circle at 50% 62%,var(--ball-ink) 0 1.6px,transparent 2px),radial-gradient(circle at 25% 70%,var(--ball-ink) 0 1.6px,transparent 2px),radial-gradient(circle at 75% 68%,var(--ball-ink) 0 1.6px,transparent 2px);opacity:.55}
+.role{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--sunk);color:var(--muted);font-weight:500}
+.weekbar{display:flex;gap:8px;align-items:center}
+.weekbar select{flex:1;min-width:0}
+select,input[type=text],input[type=number],input[type=date],textarea{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 11px;width:100%;min-width:0}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.ghost{background:transparent;border-color:transparent;color:var(--accent);padding-inline:8px}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.summary div{background:var(--surface);padding:12px 12px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.summary b{font-family:var(--display);font-size:20px;font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:4px;background:var(--sunk);padding:4px;border-radius:12px}
+.tabs button{flex:1;border:0;background:transparent;padding:8px 6px;border-radius:9px;font-weight:500;color:var(--muted)}
+.tabs button[aria-selected=true]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgb(0 0 0 / .08)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.list{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid var(--line);background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;width:100%}
+.row:first-child{border-top:0}
+.row .name{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .amt{font-variant-numeric:tabular-nums;font-weight:600}
+.pill{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--ok-bg);color:var(--ok)} .pill.warn{background:var(--warn-bg);color:var(--warn)} .pill.bad{background:var(--bad-bg);color:var(--bad)} .pill.none{background:var(--sunk);color:var(--muted)}
+.detail{padding:4px 14px 14px;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:10px;background:var(--surface)}
+.lines{display:flex;flex-direction:column;gap:4px}
+.line{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:14px}
+.line .calc{color:var(--muted);font-size:12px}
+.line.total{border-top:1px solid var(--line);padding-top:6px;font-weight:600}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px 4px;flex-wrap:wrap}
+.item{display:grid;grid-template-columns:1fr auto;gap:4px 10px;padding:12px 14px;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0}
+.item .who{grid-column:1/-1;font-size:13px;color:var(--muted)}
+.form{display:flex;flex-direction:column;gap:12px;padding:14px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:13px;font-weight:500;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:14px}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip.label{font-size:13px;padding:4px 10px;color:var(--muted)}
+.split{background:var(--sunk);border-radius:10px;padding:10px 12px;font-size:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.split b{font-variant-numeric:tabular-nums}
+.empty{padding:28px 18px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+.notice{padding:12px 14px;border-radius:var(--r);background:var(--warn-bg);color:var(--warn);font-size:14px}
+.me-card{padding:16px;display:flex;flex-direction:column;gap:12px}
+.me-total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.me-total b{font-family:var(--display);font-size:32px;font-variant-numeric:tabular-nums}
+.sheet{position:fixed;inset:auto 0 0 0;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 30px rgb(0 0 0 / .15);padding:16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));z-index:20}
+.sheet .in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.sheet textarea{min-height:180px;font-size:13px;font-family:ui-monospace, SFMono-Regular, Menlo, monospace}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:999px;font-size:14px;z-index:30}
+.flag{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--warn);margin-left:6px;vertical-align:middle}
+@media (max-width:420px){.summary b{font-size:17px}.grid2{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.tabs button,.chip,.btn{transition:background-color .15s,border-color .15s}}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app">
+  <div class="top"><div class="brand"><span class="ballmark" aria-hidden="true"></span><h1>Pickleball Tab</h1></div></div>
+  <div class="panel empty"><h2>Loading the tab…</h2><p class="muted">Weeks, sessions and who owes what will appear here.</p></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script>
+const $app = document.getElementById('app');
+const S = {
+  db:null, user:null, admin:false, uid:null,
+  roster:[], weeks:[], claimDocs:{}, weekId:null, tab:null,
+  open:null, me:null, loaded:{weeks:false, roster:false}, slow:false, offline:false,
+  showNew:false, newWeek:{start:'', title:''},
+  draft:{date:'', label:'', cost:'', people:[]}, editItem:null, showItemForm:false,
+  adj:{name:'', amount:'', note:''}, showAdj:false,
+  part:{}, newPlayer:'', sheet:null, toast:null, confirmDel:null, canClaim:true, dl:true, showLogin:false, login:{email:'', pass:''}, loginErr:''
+};
+try{ S.me = localStorage.getItem('pb_me') || null; }catch(e){}
+try{ S.weekId = localStorage.getItem('pb_week') || null; }catch(e){}
+
+/* ---------- helpers ---------- */
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const r2 = n => Math.round((n + Number.EPSILON) * 100) / 100;
+const money = n => (n < -0.004 ? '−$' : '$') + Math.abs(r2(n)).toFixed(2);
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const dlabel = iso => { if(!iso) return ''; const d = new Date(iso + 'T00:00:00'); return isNaN(d) ? iso : `${DAYS[d.getDay()]} ${d.getDate()} ${MON[d.getMonth()]}`; };
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const uid8 = () => Math.random().toString(36).slice(2, 10);
+const lsSet = (k, v) => { try{ v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); }catch(e){} };
+const curWeek = () => S.weeks.find(w => w.id === S.weekId) || null;
+
+function compute(w){
+  const people = {};
+  const get = n => people[n] || (people[n] = {name:n, lines:[], total:0});
+  const items = (w.items || []).slice().sort((a,b) => (a.date||'').localeCompare(b.date||''));
+  for(const it of items){
+    const n = (it.people||[]).length; if(!n) continue;
+    const share = r2(it.cost / n);
+    for(const p of it.people){ const x = get(p); x.lines.push({label:it.label, date:it.date, amt:share, calc:`${money(it.cost)} ÷ ${n}`}); x.total += share; }
+  }
+  for(const a of (w.adj||[])){ const x = get(a.name); x.lines.push({label:a.note || 'Adjustment', amt:a.amount, adj:true, id:a.id}); x.total += a.amount; }
+  const pay = w.pay || {};
+  for(const n of Object.keys(pay)) get(n);
+  const claims = claimsFor(w.id);
+  const list = Object.values(people).map(x => {
+    x.total = r2(x.total);
+    x.paid = r2(pay[x.name]?.amount || 0);
+    x.claim = claims[x.name] || null;
+    x.left = r2(x.total - x.paid);
+    if(x.total <= 0.004 && x.paid <= 0) x.status = 'none';
+    else if(x.left <= 0.005) x.status = 'paid';
+    else if(x.claim) x.status = 'claimed';
+    else if(x.paid > 0) x.status = 'part';
+    else x.status = 'owes';
+    return x;
+  });
+  const order = {owes:0, part:1, claimed:2, paid:3, none:4};
+  const ri = n => { const i = S.roster.indexOf(n); return i < 0 ? 999 : i; };
+  list.sort((a,b) => order[a.status]-order[b.status] || ri(a.name)-ri(b.name) || a.name.localeCompare(b.name));
+  const spent = r2(items.reduce((s,i) => s + (+i.cost||0), 0));
+  const collected = r2(list.reduce((s,x) => s + Math.min(x.paid, Math.max(x.total,0)), 0));
+  const owed = r2(list.reduce((s,x) => s + Math.max(x.left, 0), 0));
+  return {items, list, spent, collected, owed, byName:Object.fromEntries(list.map(x => [x.name, x]))};
+}
+function claimsFor(wid){
+  const out = {};
+  for(const d of Object.values(S.claimDocs)){ const c = d.weeks?.[wid]; if(c && d.player) out[d.player] = c; }
+  return out;
+}
+const statusPill = s => ({paid:'<span class="pill ok">Paid</span>', claimed:'<span class="pill warn">Says paid</span>', part:'<span class="pill warn">Part paid</span>', owes:'<span class="pill bad">Not paid</span>', none:'<span class="pill none">—</span>'}[s]);
+
+/* ---------- render ---------- */
+function render(){
+  const a = document.activeElement, fid = a && a.id, sel = a && typeof a.selectionStart === 'number' ? [a.selectionStart, a.selectionEnd] : null;
+  $app.innerHTML = view();
+  if(fid){ const el = document.getElementById(fid); if(el){ el.focus({preventScroll:true}); if(sel && el.setSelectionRange){ try{ el.setSelectionRange(sel[0], sel[1]); }catch(e){} } } }
+}
+
+function view(){
+  let h = `<div class="top"><div class="brand"><span class="ballmark" aria-hidden="true"></span><h1>Pickleball Tab</h1></div>${S.db ? `<span class="role">${S.admin ? 'Organiser' : 'Player view'}</span>` : ''}</div>`;
+  if(S.noDb) return h + `<div class="panel empty"><h2>Not connected yet</h2><p class="muted">This page isn't linked to its database. Paste your Firebase settings into index.html (see the setup steps), then upload it again.</p></div>`;
+  if(!S.loaded.weeks){
+    return h + `<div class="panel empty"><h2>${S.slow ? 'Still connecting…' : 'Loading the tab…'}</h2><p class="muted">${S.slow ? "The balances can't be reached yet. Check your connection; this page keeps trying." : 'Weeks, sessions and who owes what will appear here.'}</p></div>`;
+  }
+  if(S.offline) h += `<div class="notice">Can't reach the saved data right now. What you see may be out of date.</div>`;
+  if(!S.weeks.length){
+    h += S.admin ? newWeekForm(true) : `<div class="panel empty"><h2>No weeks yet</h2><p class="muted">When the organiser adds this week's sessions, your share shows up here.</p></div>`;
+    return h + footer() + sheet() + toast();
+  }
+  const w = curWeek(); const c = compute(w);
+  h += `<div class="weekbar"><label class="eyebrow" for="weekSel" style="position:absolute;left:-9999px">Week</label>
+    <select id="weekSel" data-change="week">${S.weeks.map(x => `<option value="${esc(x.id)}" ${x.id===w.id?'selected':''}>${esc(x.title || dlabel(x.start))}</option>`).join('')}</select>
+    ${S.admin ? `<button class="btn" data-act="toggleNew">${S.showNew ? 'Cancel' : 'New week'}</button>` : ''}</div>`;
+  if(S.admin && S.showNew) h += newWeekForm(false);
+  h += `<div class="summary"><div><span class="eyebrow">Spent</span><b>${money(c.spent)}</b></div><div><span class="eyebrow">Collected</span><b>${money(c.collected)}</b></div><div><span class="eyebrow">Still owed</span><b>${money(c.owed)}</b></div></div>`;
+  const tabs = S.admin ? [['bal','Balances'],['ses','Sessions'],['ply','Players']] : [['me','My share'],['all','Everyone']];
+  if(!tabs.some(t => t[0] === S.tab)) S.tab = tabs[0][0];
+  const pend = c.list.filter(x => x.status === 'claimed').length;
+  h += `<div class="tabs" role="tablist">${tabs.map(([k,l]) => `<button role="tab" aria-selected="${S.tab===k}" data-act="tab" data-v="${k}">${l}${k==='bal'&&pend?'<span class="flag" aria-label="payments to confirm"></span>':''}</button>`).join('')}</div>`;
+  if(S.tab === 'bal' || S.tab === 'all') h += balances(w, c);
+  if(S.tab === 'ses') h += sessions(w, c);
+  if(S.tab === 'ply') h += players();
+  if(S.tab === 'me') h += myShare(w, c);
+  return h + footer() + sheet() + toast();
+}
+
+function newWeekForm(first){
+  const nw = S.newWeek; if(!nw.start) nw.start = today();
+  return `<div class="panel">${first ? `<div class="empty" style="padding-bottom:0"><h2>Start your first week</h2><p class="muted">Add a week, then log each court hour or dinner and tick who came. Everyone's share works itself out.</p></div>` : ''}
+  <div class="form"><div class="grid2"><div class="field"><label for="nwStart">First day</label><input type="date" id="nwStart" data-bind="newWeek.start" value="${esc(nw.start)}"></div>
+  <div class="field"><label for="nwTitle">Name</label><input type="text" id="nwTitle" data-bind="newWeek.title" placeholder="Week of ${esc(dlabel(nw.start))}" value="${esc(nw.title)}"></div></div>
+  <div class="actions"><button class="btn primary" data-act="createWeek">Create week</button></div></div></div>`;
+}
+
+function detailLines(x){
+  return `<div class="lines">${x.lines.map(l => `<div class="line"><div>${esc(l.label)}${l.date ? ` <span class="muted small">· ${esc(dlabel(l.date))}</span>` : ''}${l.calc ? `<div class="calc">${esc(l.calc)}</div>` : ''}</div><div class="num">${money(l.amt)}</div></div>`).join('')}
+  <div class="line total"><div>Total</div><div class="num">${money(x.total)}</div></div>
+  ${x.paid ? `<div class="line"><div class="muted">Paid</div><div class="num muted">${money(-x.paid)}</div></div><div class="line total"><div>Left to pay</div><div class="num">${money(Math.max(x.left,0))}</div></div>` : ''}</div>`;
+}
+
+function balances(w, c){
+  const rows = c.list.filter(x => x.status !== 'none' || x.lines.length);
+  if(!rows.length) return `<div class="panel empty"><h2>Nobody owes anything yet</h2><p class="muted">${S.admin ? 'Add a session in the Sessions tab and tick who came.' : 'Once sessions are logged, everyone\'s share shows here.'}</p>${S.admin ? '<button class="btn primary" data-act="tab" data-v="ses">Add a session</button>' : ''}</div>`;
+  let h = `<div class="panel"><div class="section-head"><span class="eyebrow">${rows.length} ${rows.length===1?'person':'people'}</span>${S.admin ? `<div class="actions"><button class="btn sm" data-act="copyReminder">Copy reminder for group chat</button>${S.dl ? `<button class="btn sm" data-act="xlsxWeek">Download week (Excel)</button>${S.weeks.length > 1 ? `<button class="btn sm" data-act="xlsxAll">Download all weeks</button>` : ''}` : ''}</div>` : ''}</div><div class="list">`;
+  for(const x of rows){
+    const open = S.open === x.name;
+    h += `<button class="row" data-act="open" data-v="${esc(x.name)}" aria-expanded="${open}"><span class="name">${esc(x.name)}</span><span class="amt">${money(x.status==='part' ? x.left : x.total)}</span>${statusPill(x.status)}</button>`;
+    if(open){
+      h += `<div class="detail">${detailLines(x)}`;
+      if(x.claim) h += `<div class="small" style="color:var(--warn)">${esc(x.name)} marked ${money(x.claim.amount)} as paid${x.status==='paid'?' (confirmed)':''}.</div>`;
+      h += `<div class="actions"><button class="btn sm" data-act="copyPerson" data-v="${esc(x.name)}">Copy breakdown</button>`;
+      if(S.admin){
+        if(x.status !== 'paid') h += `<button class="btn sm primary" data-act="markPaid" data-v="${esc(x.name)}">${x.claim ? 'Confirm paid' : 'Mark paid'} ${money(x.total)}</button>`;
+        else h += `<button class="btn sm" data-act="unpay" data-v="${esc(x.name)}">Undo paid</button>`;
+        if(x.status !== 'paid') h += `<span style="display:flex;gap:6px;align-items:center"><input type="number" inputmode="decimal" step="0.01" id="part-${esc(x.name)}" data-bind-part="${esc(x.name)}" placeholder="Amount" style="width:96px" value="${esc(S.part[x.name]||'')}"><button class="btn sm" data-act="partPay" data-v="${esc(x.name)}">Record</button></span>`;
+      }
+      h += `</div></div>`;
+    }
+  }
+  return h + `</div></div>`;
+}
+
+function sessions(w, c){
+  let h = `<div class="panel"><div class="section-head"><h2>${esc(w.title || dlabel(w.start))}</h2><div class="actions"><button class="btn sm" data-act="renameWeek">Rename</button>${S.confirmDel === 'week' ? `<button class="btn sm danger" data-act="delWeek">Tap again to delete week</button>` : `<button class="btn sm danger" data-act="askDelWeek">Delete week</button>`}</div></div>`;
+  if(!c.items.length) h += `<div class="empty"><p class="muted">No sessions this week yet. Add a court hour, drill or dinner below.</p></div>`;
+  for(const it of c.items){
+    const n = (it.people||[]).length;
+    h += `<div class="item"><div><b>${esc(it.label)}</b> <span class="muted small">· ${esc(dlabel(it.date))}</span><div class="small muted num">${money(it.cost)} ÷ ${n} = ${n ? money(r2(it.cost/n)) : '—'} each</div></div>
+      <div class="actions"><button class="btn sm" data-act="editItem" data-v="${esc(it.id)}">Edit</button>${S.confirmDel === it.id ? `<button class="btn sm danger" data-act="delItem" data-v="${esc(it.id)}">Delete?</button>` : `<button class="btn sm ghost danger" data-act="askDelItem" data-v="${esc(it.id)}">Remove</button>`}</div>
+      <div class="who">${(it.people||[]).map(esc).join(', ') || 'Nobody ticked'}</div></div>`;
+  }
+  h += `</div>`;
+  h += S.showItemForm || !c.items.length ? itemForm(w, c) : `<button class="btn primary" data-act="newItem">Add session or expense</button>`;
+  // adjustments
+  h += `<div class="panel"><div class="section-head"><h3>Credits and extras</h3><button class="btn sm" data-act="toggleAdj">${S.showAdj ? 'Cancel' : 'Add one'}</button></div>`;
+  const adj = w.adj || [];
+  if(!adj.length && !S.showAdj) h += `<p class="muted small" style="padding:0 14px 14px;margin:0">For one-offs like a rained-out hour: take money off someone (negative) or add an extra charge.</p>`;
+  for(const a of adj) h += `<div class="item"><div><b>${esc(a.name)}</b> <span class="muted small">· ${esc(a.note || 'Adjustment')}</span></div><div class="actions"><span class="num" style="font-weight:600">${money(a.amount)}</span><button class="btn sm ghost danger" data-act="delAdj" data-v="${esc(a.id)}">Remove</button></div></div>`;
+  if(S.showAdj){
+    const names = allNames(w);
+    h += `<div class="form"><div class="grid2"><div class="field"><label for="adjName">Player</label><select id="adjName" data-bind="adj.name"><option value="">Choose…</option>${names.map(n => `<option ${S.adj.name===n?'selected':''}>${esc(n)}</option>`).join('')}</select></div>
+      <div class="field"><label for="adjAmt">Amount (negative = credit)</label><input type="number" inputmode="decimal" step="0.01" id="adjAmt" data-bind="adj.amount" placeholder="-33.32" value="${esc(S.adj.amount)}"></div></div>
+      <div class="field"><label for="adjNote">Reason</label><input type="text" id="adjNote" data-bind="adj.note" placeholder="Friday hour before the rain" value="${esc(S.adj.note)}"></div>
+      <div class="actions"><button class="btn primary" data-act="saveAdj">Add</button></div></div>`;
+  }
+  return h + `</div>`;
+}
+const allNames = w => { const s = new Set(S.roster); (w?.items||[]).forEach(i => (i.people||[]).forEach(p => s.add(p))); return [...s]; };
+
+function itemForm(w, c){
+  const d = S.draft;
+  if(!d.date) d.date = c.items.length ? c.items[c.items.length-1].date : (w.start || today());
+  const n = d.people.length, cost = parseFloat(d.cost);
+  const last = c.items[c.items.length-1];
+  const quick = ['Pickleball 1st hour','Pickleball 2nd hour','Pickleball 2 hours','Drill session','Dinner'];
+  return `<div class="panel"><div class="form">
+    <h3>${S.editItem ? 'Edit session' : 'New session or expense'}</h3>
+    <div class="grid2"><div class="field"><label for="itDate">Date</label><input type="date" id="itDate" data-bind="draft.date" value="${esc(d.date)}"></div>
+    <div class="field"><label for="itCost">Total cost ($)</label><input type="number" inputmode="decimal" step="0.01" id="itCost" data-bind="draft.cost" placeholder="100" value="${esc(d.cost)}"></div></div>
+    <div class="field"><label for="itLabel">What was it</label><input type="text" id="itLabel" data-bind="draft.label" placeholder="Pickleball 1st hour (2 courts)" value="${esc(d.label)}">
+      <div class="chips">${quick.map(q => `<button class="chip label" data-act="quickLabel" data-v="${esc(q)}">${esc(q)}</button>`).join('')}</div></div>
+    <div class="field"><label>Who came <span class="muted">(${n} ticked)</span></label>
+      <div class="actions">${last && !S.editItem ? `<button class="btn sm" data-act="sameAsLast">Same as ${esc(last.label)}</button>` : ''}<button class="btn sm ghost" data-act="clearPeople">Clear</button></div>
+      <div class="chips">${allNames(w).map(p => `<button class="chip" aria-pressed="${d.people.includes(p)}" data-act="togglePerson" data-v="${esc(p)}">${esc(p)}</button>`).join('')}</div>
+      ${allNames(w).length ? '' : '<p class="muted small" style="margin:0">No players yet. Add the first names below.</p>'}
+      <div style="display:flex;gap:8px"><input type="text" id="quickPlayer" data-bind="newPlayer" placeholder="Add a new player and tick them" value="${esc(S.newPlayer)}"><button class="btn" data-act="quickAddPlayer">Add</button></div></div>
+    <div class="split"><span>${n ? `${n} ${n===1?'person':'people'}` : 'Tick who came'}</span><b>${n && cost > 0 ? `${money(r2(cost/n))} each` : ''}</b></div>
+    <div class="actions"><button class="btn primary" data-act="saveItem" ${n && cost > 0 && d.label.trim() ? '' : 'disabled'}>${S.editItem ? 'Save changes' : 'Add to week'}</button>${c.items.length ? `<button class="btn" data-act="cancelItem">Cancel</button>` : ''}</div>
+  </div></div>`;
+}
+
+function players(){
+  let h = `<div class="panel"><div class="section-head"><h2>Players</h2><span class="muted small">${S.roster.length} on the list</span></div>`;
+  h += `<div class="form" style="padding-top:6px"><div style="display:flex;gap:8px"><input type="text" id="newPlayer" data-bind="newPlayer" placeholder="Add a name" value="${esc(S.newPlayer)}"><button class="btn primary" data-act="addPlayer">Add</button></div></div><div class="list">`;
+  S.roster.forEach((p, i) => { h += `<div class="row" style="grid-template-columns:1fr auto"><span class="name">${esc(p)}</span><div class="actions">${S.confirmDel === 'p:'+p ? `<button class="btn sm danger" data-act="delPlayer" data-v="${esc(p)}">Remove?</button>` : `<button class="btn sm ghost danger" data-act="askDelPlayer" data-v="${esc(p)}">Remove</button>`}</div></div>`; });
+  return h + `</div><p class="muted small" style="padding:10px 14px;margin:0">Removing someone keeps their past weeks intact.</p></div>`;
+}
+
+function myShare(w, c){
+  const names = allNames(w);
+  let h = `<div class="panel me-card"><div class="field"><label for="meSel">Who are you?</label><select id="meSel" data-change="me"><option value="">Pick your name</option>${names.map(n => `<option ${S.me===n?'selected':''}>${esc(n)}</option>`).join('')}</select></div>`;
+  if(!S.me) return h + `<p class="muted" style="margin:0">Pick your name to see what you owe and how it was split.</p></div>`;
+  const x = c.byName[S.me];
+  if(!x || (x.status === 'none' && !x.lines.length)){
+    h += `<p style="margin:0">Nothing owed for ${esc(w.title || dlabel(w.start))}.</p>`;
+  } else {
+    h += `<div class="me-total"><div><div class="eyebrow">${x.status==='part' ? 'Left to pay' : 'Your share'}</div><b>${money(x.status==='part' ? x.left : x.total)}</b></div>${statusPill(x.status)}</div>${detailLines(x)}`;
+    if(x.status === 'owes' || x.status === 'part') h += `<div class="actions"><button class="btn primary" data-act="claim">I've paid ${money(x.left)}</button></div><p class="muted small" style="margin:0">Pay the organiser the way you normally do, then tap this so she can confirm it.</p>`;
+    if(x.status === 'claimed') h += `<p class="small" style="margin:0;color:var(--warn)">You marked this as paid. The organiser will confirm it.</p><div class="actions"><button class="btn sm ghost" data-act="unclaim">I haven't paid yet</button></div>`;
+    if(x.status === 'paid') h += `<p class="small" style="margin:0;color:var(--ok)">All settled for this week. Thanks!</p>`;
+  }
+  // other weeks outstanding
+  const other = S.weeks.filter(o => o.id !== w.id).map(o => ({o, p: compute(o).byName[S.me]})).filter(z => z.p && z.p.left > 0.005 && z.p.status !== 'claimed');
+  if(other.length) h += `<div class="lines" style="border-top:1px solid var(--line);padding-top:10px"><div class="eyebrow">Still open from other weeks</div>${other.map(z => `<div class="line"><div>${esc(z.o.title || dlabel(z.o.start))}</div><div class="num">${money(z.p.left)}</div></div>`).join('')}</div>`;
+  return h + `</div>`;
+}
+
+function sheet(){
+  if(!S.sheet) return '';
+  return `<div class="sheet" role="dialog" aria-label="${esc(S.sheet.title)}"><div class="in"><div class="top"><h3>${esc(S.sheet.title)}</h3><button class="btn sm" data-act="closeSheet">Done</button></div>
+  <p class="muted small" style="margin:0">${esc(S.sheet.hint)}</p><textarea id="sheetText" readonly>${esc(S.sheet.text)}</textarea>
+  <div class="actions"><button class="btn primary" data-act="copySheet">Copy</button></div></div></div>`;
+}
+function footer(){
+  if(!S.db) return '';
+  if(S.admin) return `<div class="foot muted small">Signed in as organiser <button class="btn sm ghost" data-act="logout">Sign out</button></div>`;
+  if(!S.showLogin) return `<div class="foot"><button class="btn sm ghost" data-act="showLogin">Organiser sign-in</button></div>`;
+  return `<div class="panel"><div class="form"><h3>Organiser sign-in</h3>
+    <div class="field"><label for="loginEmail">Email</label><input type="text" inputmode="email" autocomplete="username" id="loginEmail" data-bind="login.email" value="${esc(S.login.email)}"></div>
+    <div class="field"><label for="loginPass">Password</label><input type="password" autocomplete="current-password" id="loginPass" data-bind="login.pass" value="${esc(S.login.pass)}"></div>
+    ${S.loginErr ? `<p class="small" style="margin:0;color:var(--bad)">${esc(S.loginErr)}</p>` : ''}
+    <div class="actions"><button class="btn primary" data-act="login">Sign in</button><button class="btn" data-act="hideLogin">Cancel</button></div></div></div>`;
+}
+const toast = () => S.toast ? `<div class="toast" role="status">${esc(S.toast)}</div>` : '';
+function flash(msg){ S.toast = msg; render(); clearTimeout(flash.t); flash.t = setTimeout(() => { S.toast = null; render(); }, 2200); }
+
+/* ---------- text builders ---------- */
+function reminderText(w, c){
+  const lines = [`Pickleball: ${w.title || dlabel(w.start)}`, ''];
+  for(const it of c.items){ const n = (it.people||[]).length; if(n) lines.push(`${dlabel(it.date)} · ${it.label}: ${money(it.cost)} ÷ ${n} = ${money(r2(it.cost/n))}`); }
+  const unpaid = c.list.filter(x => ['owes','part'].includes(x.status));
+  lines.push('', unpaid.length ? 'Still to pay:' : 'Everyone has paid. Thank you!');
+  for(const x of unpaid) lines.push(`${x.name}  ${money(x.left)}`);
+  if(unpaid.length) lines.push('', 'Open the Pickleball Tab link to see your breakdown, and tap "I\'ve paid" once you have.');
+  return lines.join('\n');
+}
+function personText(w, x){
+  const L = [`Hi ${x.name}! Pickleball: ${w.title || dlabel(w.start)}`];
+  for(const l of x.lines) L.push(`${l.date ? dlabel(l.date) + ' · ' : ''}${l.label}${l.calc ? ` (${l.calc})` : ''}: ${money(l.amt)}`);
+  L.push(`Total: ${money(x.total)}`);
+  if(x.paid) L.push(`Paid so far: ${money(x.paid)}`, `Left to pay: ${money(Math.max(x.left,0))}`);
+  return L.join('\n');
+}
+/* ---------- Excel export ---------- */
+const STATUS_TXT = {paid:'Paid', claimed:'Says paid', part:'Part paid', owes:'Not paid', none:''};
+function weekSheet(w){
+  const c = compute(w), items = c.items, hasAdj = (w.adj||[]).length > 0;
+  const head1 = ['Date', ...items.map(i => dlabel(i.date))], head2 = ['Expense', ...items.map(i => i.label)], head3 = ['Expense amount', ...items.map(i => +i.cost)];
+  if(hasAdj){ head1.push('Credits / extras'); head2.push(''); head3.push(''); }
+  head1.push('Total owed', 'Amount paid', 'Payment status', 'Notes'); head2.push('', '', '', ''); head3.push(c.spent, '', '', '');
+  const rows = [head1, head2, head3];
+  const names = [...S.roster]; c.list.forEach(x => { if(!names.includes(x.name)) names.push(x.name); });
+  const rowStatus = [];
+  for(const n of names){
+    rowStatus.push(c.byName[n] ? c.byName[n].status : 'none');
+    const x = c.byName[n];
+    const r = [n, ...items.map(i => (i.people||[]).includes(n) ? r2(i.cost / i.people.length) : '')];
+    const adj = (w.adj||[]).filter(a => a.name === n);
+    if(hasAdj) r.push(adj.length ? r2(adj.reduce((s,a) => s + a.amount, 0)) : '');
+    r.push(x ? x.total : 0, x && x.paid ? x.paid : '', x ? STATUS_TXT[x.status] : '', adj.map(a => a.note).filter(Boolean).join('; '));
+    rows.push(r);
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  const line = {style:'thin', color:{rgb:'BFBFBF'}}, border = {top:line, bottom:line, left:line, right:line};
+  const PAL = {
+    paid:    {fill:'E2EFDA', font:'375623', bold:false},
+    owes:    {fill:'F8D7D7', font:'C00000', bold:true},
+    part:    {fill:'F8D7D7', font:'C00000', bold:true},
+    claimed: {fill:'FFF2CC', font:'7F6000', bold:true},
+    none:    {fill:'FFFFFF', font:'000000', bold:false}
+  };
+  const statusCol = range.e.c - 1, notesCol = range.e.c;
+  for(let R = 0; R <= range.e.r; R++) for(let C = 0; C <= range.e.c; C++){
+    const ref = XLSX.utils.encode_cell({r:R, c:C});
+    const cell = ws[ref] || (ws[ref] = {t:'s', v:''});
+    if(cell.t === 'n' && (R >= 2 && C >= 1)) cell.z = '$#,##0.00';
+    let s;
+    if(R === 0) s = {fill:{fgColor:{rgb:'1F4E78'}}, font:{bold:true, color:{rgb:'FFFFFF'}}, alignment:{horizontal:'center', vertical:'center', wrapText:true}};
+    else if(R <= 2) s = {fill:{fgColor:{rgb:'D9D9D9'}}, font:{bold:true, color:{rgb:'000000'}}, alignment:{horizontal:'center', vertical:'center', wrapText:true}};
+    else {
+      const p = PAL[rowStatus[R-3]] || PAL.none;
+      s = {fill:{fgColor:{rgb:p.fill}}, font:{bold: p.bold || C === 0, color:{rgb:p.font}}, alignment:{horizontal: C === notesCol ? 'left' : 'center', vertical:'center', wrapText: C === notesCol}};
+    }
+    s.border = border;
+    cell.s = s;
+  }
+  ws['!rows'] = [{hpt:34}, {hpt:48}, {hpt:26}];
+  ws['!cols'] = rows[0].map((_, i) => ({wch: i === 0 ? 18 : Math.min(28, Math.max(12, ...rows.slice(0,2).map(r => String(r[i]||'').length + 2)))}));
+  ws['!freeze'] = {xSplit:1, ySplit:3};
+  return ws;
+}
+const sheetName = (w, used) => { let n = (w.title || dlabel(w.start) || 'Week').replace(/[\[\]:*?\/\\]/g, '-').slice(0, 31); let k = n, i = 2; while(used.has(k)) k = n.slice(0, 28) + ' ' + i++; used.add(k); return k; };
+async function exportXlsx(weeks, filename){
+  if(typeof XLSX === 'undefined'){ flash("The spreadsheet tool didn't load. Reload the page and try again."); return; }
+  const wb = XLSX.utils.book_new(), used = new Set();
+  for(const w of weeks) XLSX.utils.book_append_sheet(wb, weekSheet(w), sheetName(w, used));
+  const buf = XLSX.write(wb, {bookType:'xlsx', type:'array'});
+  const url = URL.createObjectURL(new Blob([buf], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000); flash('Spreadsheet downloaded');
+}
+const fileSafe = s => String(s).replace(/[^A-Za-z0-9 _-]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+async function copy(text, title, hint){
+  try{ await navigator.clipboard.writeText(text); flash('Copied'); }
+  catch(e){ S.sheet = {title, hint: hint || 'Select the text below and copy it.', text}; render(); const t = document.getElementById('sheetText'); t && t.select(); }
+}
+
+/* ---------- writes ---------- */
+let chain = Promise.resolve();
+function saveWeek(w){
+  const body = {title:w.title||'', start:w.start||'', items:w.items||[], adj:w.adj||[], pay:w.pay||{}, created:w.created||Date.now()};
+  chain = chain.then(() => S.db.doc('weeks/' + w.id).set(body)).catch(e => { flash(e?.code === 'invalid_argument' ? "You can't change this tab. Ask the organiser." : "Couldn't save. Try again."); });
+  return chain;
+}
+function saveRoster(){
+  chain = chain.then(() => S.db.doc('config/roster').set({players:S.roster})).catch(() => flash("Couldn't save the player list."));
+}
+function mutWeek(fn){ const w = curWeek(); if(!w) return; const copyW = JSON.parse(JSON.stringify(w)); fn(copyW); const i = S.weeks.findIndex(x => x.id === w.id); S.weeks[i] = copyW; render(); saveWeek(copyW); }
+
+/* ---------- events ---------- */
+const actions = {
+  tab: v => { S.tab = v; S.open = null; S.confirmDel = null; },
+  open: v => { S.open = S.open === v ? null : v; },
+  toggleNew: () => { S.showNew = !S.showNew; },
+  createWeek: () => {
+    const start = S.newWeek.start || today(); const id = start + '-' + uid8().slice(0,4);
+    const w = {id, start, title: S.newWeek.title.trim() || `Week of ${dlabel(start)}`, items:[], adj:[], pay:{}, created:Date.now()};
+    S.weeks.unshift(w); S.weeks.sort(sortWeeks); S.weekId = id; lsSet('pb_week', id); S.showNew = false; S.newWeek = {start:'', title:''};
+    S.tab = 'ses'; S.showItemForm = true; S.draft = {date:start, label:'', cost:'', people:[]}; saveWeek(w);
+  },
+  renameWeek: () => { const w = curWeek(); S.sheet = null; S.renaming = true; S.renameVal = w.title; S.newWeek = {start:w.start, title:w.title}; S.showNew = false; S.renameMode = true; },
+  askDelWeek: () => { S.confirmDel = 'week'; },
+  delWeek: async () => { const w = curWeek(); S.confirmDel = null; S.weeks = S.weeks.filter(x => x.id !== w.id); S.weekId = S.weeks[0]?.id || null; render(); try{ await S.db.doc('weeks/' + w.id).delete(); flash('Week deleted'); }catch(e){ flash("Couldn't delete the week."); } },
+  newItem: () => { S.showItemForm = true; S.editItem = null; S.draft = {date:'', label:'', cost:'', people:[]}; },
+  cancelItem: () => { S.showItemForm = false; S.editItem = null; S.draft = {date:'', label:'', cost:'', people:[]}; },
+  quickLabel: v => { S.draft.label = v; },
+  togglePerson: v => { const p = S.draft.people; const i = p.indexOf(v); i < 0 ? p.push(v) : p.splice(i, 1); },
+  sameAsLast: () => { const c = compute(curWeek()); const last = c.items[c.items.length-1]; if(last){ S.draft.people = [...last.people]; if(!S.draft.cost) S.draft.cost = String(last.cost); } },
+  clearPeople: () => { S.draft.people = []; },
+  saveItem: () => {
+    const d = S.draft, cost = r2(parseFloat(d.cost));
+    if(!(cost > 0) || !d.people.length || !d.label.trim()) return;
+    const it = {id: S.editItem || uid8(), date: d.date || today(), label: d.label.trim(), cost, people: [...d.people]};
+    mutWeek(w => { const i = w.items.findIndex(x => x.id === it.id); i < 0 ? w.items.push(it) : (w.items[i] = it); });
+    flash(S.editItem ? 'Session updated' : `Added: ${money(r2(cost/it.people.length))} each`);
+    S.editItem = null; S.showItemForm = false; S.draft = {date: it.date, label:'', cost:'', people:[]};
+  },
+  editItem: v => { const it = curWeek().items.find(x => x.id === v); if(!it) return; S.editItem = v; S.showItemForm = true; S.draft = {date:it.date, label:it.label, cost:String(it.cost), people:[...it.people]}; setTimeout(() => document.getElementById('itLabel')?.scrollIntoView({block:'center'}), 0); },
+  askDelItem: v => { S.confirmDel = v; },
+  delItem: v => { S.confirmDel = null; mutWeek(w => { w.items = w.items.filter(x => x.id !== v); }); flash('Session removed'); },
+  toggleAdj: () => { S.showAdj = !S.showAdj; },
+  saveAdj: () => { const a = S.adj, amt = r2(parseFloat(a.amount)); if(!a.name || !amt) { flash('Choose a player and an amount'); return; } mutWeek(w => { w.adj.push({id:uid8(), name:a.name, amount:amt, note:a.note.trim()}); }); S.adj = {name:'', amount:'', note:''}; S.showAdj = false; },
+  delAdj: v => { mutWeek(w => { w.adj = w.adj.filter(x => x.id !== v); }); },
+  markPaid: v => { const x = compute(curWeek()).byName[v]; mutWeek(w => { w.pay[v] = {amount: x.total, at: Date.now()}; }); flash(`${v} marked paid`); },
+  unpay: v => { mutWeek(w => { delete w.pay[v]; }); },
+  partPay: v => { const amt = r2(parseFloat(S.part[v])); if(!(amt > 0)) { flash('Enter the amount received'); return; } mutWeek(w => { w.pay[v] = {amount: r2((w.pay[v]?.amount || 0) + amt), at: Date.now()}; }); S.part[v] = ''; flash(`Recorded ${money(amt)} from ${v}`); },
+  xlsxWeek: () => { const w = curWeek(); return exportXlsx([w], `Pickleball - ${fileSafe(w.title || w.start)}.xlsx`); },
+  xlsxAll: () => exportXlsx(S.weeks, `Pickleball - all weeks ${today()}.xlsx`),
+  copyReminder: () => { const w = curWeek(); copy(reminderText(w, compute(w)), 'Reminder for the group chat', 'Paste this into the group chat.'); },
+  copyPerson: v => { const w = curWeek(); copy(personText(w, compute(w).byName[v]), `Breakdown for ${v}`, 'Paste this into a message.'); },
+  addPlayer: () => { const n = S.newPlayer.trim(); if(!n) return; if(S.roster.some(p => p.toLowerCase() === n.toLowerCase())) { flash(`${n} is already on the list`); return; } S.roster.push(n); S.newPlayer = ''; saveRoster(); },
+  quickAddPlayer: () => { const n = S.newPlayer.trim(); if(!n) return; if(!S.roster.some(p => p.toLowerCase() === n.toLowerCase())){ S.roster.push(n); saveRoster(); } const ex = S.roster.find(p => p.toLowerCase() === n.toLowerCase()); if(!S.draft.people.includes(ex)) S.draft.people.push(ex); S.newPlayer = ''; },
+  askDelPlayer: v => { S.confirmDel = 'p:' + v; },
+  delPlayer: v => { S.roster = S.roster.filter(p => p !== v); S.confirmDel = null; saveRoster(); },
+  claim: async () => {
+    const w = curWeek(), x = compute(w).byName[S.me];
+    const fallback = () => copy(`Hi! I've paid ${money(x.left)} for pickleball (${w.title || dlabel(w.start)}). – ${S.me}`, 'Let the organiser know', "This link can't save your tick, so send her this message instead.");
+    if(!S.uid || !S.canClaim) return fallback();
+    const prev = S.claimDocs[S.uid] || {};
+    const body = {player: S.me, weeks: {...(prev.player === S.me ? prev.weeks : {}), [w.id]: {amount: x.left, at: Date.now()}}};
+    S.claimDocs[S.uid] = body; render();
+    try{ await S.db.doc('claims/' + S.uid).set(body); flash('Thanks! Marked as paid'); }
+    catch(e){ S.claimDocs[S.uid] = prev; S.canClaim = false; render(); fallback(); }
+  },
+  unclaim: async () => {
+    const w = curWeek(); const prev = S.claimDocs[S.uid]; if(!prev) return;
+    const weeks = {...prev.weeks}; delete weeks[w.id]; const body = {player: prev.player, weeks};
+    S.claimDocs[S.uid] = body; render();
+    try{ await S.db.doc('claims/' + S.uid).set(body); }catch(e){ S.claimDocs[S.uid] = prev; flash("Couldn't undo that."); render(); }
+  },
+  showLogin: () => { S.showLogin = true; S.loginErr = ''; },
+  hideLogin: () => { S.showLogin = false; S.login.pass = ''; S.loginErr = ''; },
+  login: async () => {
+    S.loginErr = ''; render();
+    try{ await window.pbAuth.login(S.login.email.trim(), S.login.pass); S.showLogin = false; S.login.pass = ''; render(); }
+    catch(e){ S.loginErr = /invalid|wrong|not-found|credential/.test(e?.code || '') ? 'That email and password didn\'t match.' : "Couldn't sign in. Check your connection and try again."; render(); }
+  },
+  logout: () => { window.pbAuth.logout(); S.tab = null; },
+  closeSheet: () => { S.sheet = null; },
+  copySheet: async () => { const t = document.getElementById('sheetText'); try{ await navigator.clipboard.writeText(S.sheet.text); flash('Copied'); }catch(e){ t && t.select(); flash('Text selected. Copy it from your keyboard or menu'); } },
+};
+// rename reuses the new-week form fields inline
+actions.renameWeek = () => {
+  const w = curWeek(); S.sheet = null;
+  S.renaming = !S.renaming; S.renameVal = w.title || '';
+};
+const _sessions = sessions;
+sessions = function(w, c){
+  let h = _sessions(w, c);
+  if(S.renaming) h = `<div class="panel"><div class="form"><div class="field"><label for="renameVal">Week name</label><input type="text" id="renameVal" data-bind="renameVal" value="${esc(S.renameVal)}"></div><div class="actions"><button class="btn primary" data-act="saveRename">Save name</button><button class="btn" data-act="renameWeek">Cancel</button></div></div></div>` + h;
+  return h;
+};
+actions.saveRename = () => { const t = (S.renameVal || '').trim(); if(!t) return; S.renaming = false; mutWeek(w => { w.title = t; }); };
+
+$app.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const fn = actions[b.dataset.act]; if(!fn) return;
+  e.preventDefault();
+  const r = fn(b.dataset.v);
+  if(!(r instanceof Promise)) render();
+});
+$app.addEventListener('input', e => {
+  const t = e.target;
+  if(t.dataset.bind){ const [o, k] = t.dataset.bind.split('.'); if(k) S[o][k] = t.value; else S[o] = t.value;
+    if(t.dataset.bind.startsWith('draft.')) refreshSplit(); }
+  if(t.dataset.bindPart) S.part[t.dataset.bindPart] = t.value;
+});
+function refreshSplit(){ // keep typing smooth: update only the split line and save button
+  const d = S.draft, n = d.people.length, cost = parseFloat(d.cost);
+  const sp = $app.querySelector('.split b'); if(sp) sp.textContent = n && cost > 0 ? `${money(r2(cost/n))} each` : '';
+  const sb = $app.querySelector('[data-act=saveItem]'); if(sb) sb.disabled = !(n && cost > 0 && d.label.trim());
+}
+$app.addEventListener('change', e => {
+  const t = e.target;
+  if(t.dataset.change === 'week'){ S.weekId = t.value; lsSet('pb_week', t.value); S.open = null; S.showItemForm = false; S.editItem = null; S.renaming = false; S.confirmDel = null; render(); }
+  if(t.dataset.change === 'me'){ S.me = t.value || null; lsSet('pb_me', S.me); render(); }
+  if(t.dataset.bind && t.tagName === 'SELECT'){ render(); }
+});
+$app.addEventListener('keydown', e => {
+  if(e.key !== 'Enter') return;
+  if(e.target.id === 'newPlayer'){ e.preventDefault(); actions.addPlayer(); render(); }
+  if(e.target.id === 'quickPlayer'){ e.preventDefault(); actions.quickAddPlayer(); render(); }
+  if(e.target.id === 'loginPass'){ e.preventDefault(); actions.login(); }
+  if(e.target.id === 'renameVal'){ e.preventDefault(); actions.saveRename(); render(); }
+});
+
+/* ---------- boot ---------- */
+const sortWeeks = (a, b) => (b.start||'').localeCompare(a.start||'') || (b.created||0) - (a.created||0);
+</script>
+<script type="module">
+/* ====== PASTE YOUR FIREBASE SETTINGS HERE (Firebase console → Project settings → Your apps) ====== */
+const firebaseConfig = {
+  apiKey: "AIzaSyDPYwMt8kqCBcWXIZ9jZjMT1rTa2nOQ7l4",
+  authDomain: "pickleball-tap.firebaseapp.com",
+  projectId: "pickleball-tap",
+  storageBucket: "pickleball-tap.firebasestorage.app",
+  messagingSenderId: "31333467105",
+  appId: "1:31333467105:web:0984231dc0e9cad485c8a0"
+};
+/* The organiser's sign-in email(s). Must match the list in firestore.rules. */
+const ORGANISERS = ["youmin.kimmie@gmail.com", "anh.truong.anhzy.com"];
+/* ================================================================================================ */
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, collection, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+if(firebaseConfig.apiKey.startsWith("PASTE")){ S.noDb = true; render(); }
+else {
+  const app = initializeApp(firebaseConfig), fs = getFirestore(app), auth = getAuth(app);
+  const wrapDoc = s => ({id:s.id, exists:s.exists(), data:() => s.data()});
+  S.db = {
+    doc: p => { const r = doc(fs, p); return {
+      set: d => setDoc(r, d), delete: () => deleteDoc(r),
+      onSnapshot: (n, e) => onSnapshot(r, s => n(wrapDoc(s)), e) }; },
+    collection: p => ({ onSnapshot: (n, e) => onSnapshot(collection(fs, p), s => n({docs: s.docs.map(wrapDoc), metadata:{fromCache: s.metadata.fromCache}}), e) })
+  };
+  const orgs = ORGANISERS.map(x => x.toLowerCase());
+  window.pbAuth = {
+    login: (email, pass) => signInWithEmailAndPassword(auth, email, pass),
+    logout: async () => { await signOut(auth); }
+  };
+  let started = false;
+  onAuthStateChanged(auth, u => {
+    if(!started){ started = true; subscribe(); }
+    if(!u){ signInAnonymously(auth).catch(() => {}); S.admin = false; S.uid = null; render(); return; }
+    S.uid = u.uid; S.admin = !!(u.email && orgs.includes(u.email.toLowerCase()));
+    render();
+  });
+  function subscribe(){
+    const db = S.db;
+    const timer = setTimeout(() => { if(!S.loaded.weeks){ S.slow = true; render(); } }, 10000);
+    db.collection('weeks').onSnapshot(snap => {
+      clearTimeout(timer); S.offline = false; S.slow = false;
+      S.weeks = snap.docs.map(d => ({id: d.id, ...JSON.parse(JSON.stringify(d.data()))})).sort(sortWeeks);
+      if(!S.weeks.some(w => w.id === S.weekId)) S.weekId = S.weeks[0]?.id || null;
+      S.loaded.weeks = true; render();
+    }, () => { clearTimeout(timer); S.loaded.weeks = true; S.offline = true; render(); });
+    db.doc('config/roster').onSnapshot(d => { S.roster = d.exists ? [...(d.data().players || [])] : []; render(); }, () => {});
+    db.collection('claims').onSnapshot(snap => { const m = {}; snap.docs.forEach(d => { m[d.id] = d.data(); }); S.claimDocs = m; render(); }, () => {});
+  }
+}
+</script>
+</body>
+</html>
+
